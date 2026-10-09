@@ -169,7 +169,7 @@ const MandiAdvisor = () => {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        model: "llama-3.1-8b-instant",
+                        model: "qwen/qwen3.8-27b",
                         messages: [
                             { role: "system", content: "You are an Indian Mandi Price Expert. Speak in simple English mixed with Hindi/Marathi. Give selling advice based on agricultural data." },
                             { role: "user", content: `Context: Crop ${selectedCrop}, Mandi ${selectedMandi}, Today's Price ₹${activeAnalytic?.today}. Request: ${userMsg}` }

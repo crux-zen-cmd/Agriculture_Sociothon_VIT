@@ -45,7 +45,7 @@ const FarmerChatbot = () => {
                     "Authorization": `Bearer ${groqApiKey}`,
                 },
                 body: JSON.stringify({
-                    model: "llama-3.1-8b-instant", // High speed intelligent modern model from Groq
+                    model: "qwen/qwen3.8-27b", // Fast, accurate agricultural model on Groq
                     messages: [
                         { 
                             role: "system", 
