@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { auth, db } from "../firebase";
+import { auth, db, firestore } from "../firebase";
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { ref, set, get } from "firebase/database";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTractor } from "react-icons/fa";
 import { MdEmail, MdLock, MdPerson, MdPhone, MdLocationOn, MdVisibility, MdVisibilityOff, MdFingerprint, MdArrowBack } from "react-icons/md";
 import toast from "react-hot-toast";
 import axios from "axios";
+
 
 const OTP_SERVICE_URL = "http://localhost:3001/auth";
 
@@ -53,16 +55,46 @@ const AuthPage = () => {
     const navigate = useNavigate();
 
     const saveUserToDB = async (uid, data) => {
-        const snap = await get(ref(db, `users/${uid}`));
-        if (!snap.exists()) {
-            await set(ref(db, `users/${uid}`), {
-                ...data,
-                createdAt: new Date().toISOString(),
-            });
+        const timestamp = new Date().toISOString();
+        const profile = {
+            uid,
+            ...data,
+            createdAt: timestamp,
+            lastLoginAt: timestamp,
+        };
+
+        // 1. Save directly into Cloud Firestore 'users' collection
+        try {
+            await setDoc(doc(firestore, "users", uid), profile, { merge: true });
+        } catch (fErr) {
+            console.error("Firestore user save error:", fErr);
+        }
+
+        // 2. Also sync to Realtime Database so existing RTDB listeners remain functional
+        try {
+            const snap = await get(ref(db, `users/${uid}`));
+            if (!snap.exists()) {
+                await set(ref(db, `users/${uid}`), profile);
+            }
+        } catch (rErr) {
+            console.warn("RTDB sync error:", rErr);
         }
     };
 
     const processSuccessfulLogin = (uid, currentRole, phoneOrEmail, userName = "", passToken = "") => {
+        // Record login audit in Cloud Firestore
+        try {
+            setDoc(doc(firestore, "users", uid), {
+                uid,
+                role: currentRole,
+                identifier: phoneOrEmail,
+                name: userName || "User",
+                lastLoginAt: new Date().toISOString()
+            }, { merge: true });
+        } catch (err) {
+            console.warn("Firestore login record error:", err);
+        }
+
         // Save device session persistently
         localStorage.setItem("agroshare_saved_device", JSON.stringify({
             uid,

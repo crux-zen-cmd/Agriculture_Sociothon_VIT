@@ -12,7 +12,8 @@ import * as pdfjsLib from "pdfjs-dist";
 // Configure PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
-const IMGBB_API_KEY = "7ad87a0a10eabb5b4ba5fe2e5a10de1e";
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "21c9cb7f31a6f95250466bac2675000f";
+
 
 const uploadToImgBB = async (base64Data) => {
     const base64Only = base64Data.split(",")[1];

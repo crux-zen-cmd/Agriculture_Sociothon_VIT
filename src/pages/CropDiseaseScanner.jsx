@@ -7,10 +7,10 @@ import {
 } from "react-icons/md";
 import toast from "react-hot-toast";
 
-// ─── FREE IMAGE HOST — NO KEY REQUIRED ──────────────────────────────────────
-// We upload the image to imgbb (free, no CORS issues) to get a public URL,
-// because Groq Vision API only accepts http/https URLs — not base64 strings.
-const IMGBB_API_KEY = "7ad87a0a10eabb5b4ba5fe2e5a10de1e"; // free public demo key
+// ─── IMAGE HOST VIA IMGBB ───────────────────────────────────────────────────
+// Groq Vision API requires an http/https URL, so we upload to ImgBB
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "21c9cb7f31a6f95250466bac2675000f";
+
 
 const uploadToImgBB = async (base64Data) => {
     // Strip the "data:image/xxx;base64," prefix

@@ -5,8 +5,10 @@ import { ref, onValue } from "firebase/database";
 import { Toaster } from "react-hot-toast";
 import { AnimatePresence } from "framer-motion";
 
-import { auth, db } from "./firebase";
+import { auth, db, firestore } from "./firebase";
+import { doc, getDoc } from "firebase/firestore";
 import useAuthStore from "./store/useAuthStore";
+
 
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
@@ -53,9 +55,21 @@ const AppContent = () => {
         setAuthUser(firebaseUser);
         const userRef = ref(db, `users/${firebaseUser.uid}`);
         // Real-time DB listener keeps profile in sync
-        userUnsub = onValue(userRef, (snap) => {
-          setUser(snap.exists() ? snap.val() : null);
-          setLoading(false);
+        userUnsub = onValue(userRef, async (snap) => {
+          if (snap.exists()) {
+            setUser(snap.val());
+            setLoading(false);
+          } else {
+            // Check Cloud Firestore for profile
+            try {
+              const fSnap = await getDoc(doc(firestore, "users", firebaseUser.uid));
+              setUser(fSnap.exists() ? fSnap.data() : null);
+            } catch (err) {
+              console.warn("Firestore profile read error:", err);
+              setUser(null);
+            }
+            setLoading(false);
+          }
         });
       } else {
         setAuthUser(null);
